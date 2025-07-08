@@ -1,11 +1,11 @@
 #include "uart_task.h"
 #include "FreeRTOS.h"
-#include "common.h"
 #include "semphr.h"
 #include "stream_buffer.h"
 #include "task.h"
 #include "uart_manager.h"
 #include "usart.h"
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 

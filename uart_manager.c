@@ -1,6 +1,5 @@
 #include "uart_manager.h"
 #include "FreeRTOS.h"
-#include "common.h"
 #include "task.h"
 #include <assert.h>
 #include <stdbool.h>
@@ -139,28 +138,4 @@ uart_err_t uart_manager_initialize(uart_manager_t* manager,
         default:
             return UART_ERR_OK;
     }
-}
-
-void uart_receive_complete_callback(void)
-{
-    BaseType_t task_woken = pdFALSE;
-
-    xTaskNotifyFromISR(task_manager_get(TASK_TYPE_UART),
-                       UART_NOTIFY_RECEIVE_COMPLETE,
-                       eSetBits,
-                       &task_woken);
-
-    portYIELD_FROM_ISR(task_woken);
-}
-
-void uart_transmit_complete_callback(void)
-{
-    BaseType_t task_woken = pdFALSE;
-
-    xTaskNotifyFromISR(task_manager_get(TASK_TYPE_UART),
-                       UART_NOTIFY_TRANSMIT_COMPLETE,
-                       eSetBits,
-                       &task_woken);
-
-    portYIELD_FROM_ISR(task_woken);
 }
