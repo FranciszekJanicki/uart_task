@@ -10,7 +10,6 @@ target_include_directories(uart_task PUBLIC
 )
 
 target_link_libraries(uart_task PUBLIC
-    common
     stm32cubemx
 )
 
