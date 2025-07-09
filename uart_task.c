@@ -29,16 +29,17 @@ static void uart_task_func(void* task_param)
     }
 }
 
-TaskHandle_t uart_task_initialize(uart_task_ctx_t* task_ctx,
-                                  StaticTask_t* task_buffer,
-                                  UBaseType_t task_priority,
-                                  UBaseType_t task_stack_size,
-                                  StackType_t* task_stack)
+TaskHandle_t uart_task_create_task(uart_task_ctx_t* task_ctx,
+                                   char const* task_name,
+                                   StaticTask_t* task_buffer,
+                                   UBaseType_t task_priority,
+                                   StackType_t* task_stack,
+                                   UBaseType_t task_stack_size)
 {
-    assert(task_ctx && task_buffer && task_stack);
+    assert(task_ctx && task_name && task_buffer && task_stack);
 
     return xTaskCreateStatic(uart_task_func,
-                             "uart_task",
+                             task_name,
                              task_stack_size,
                              task_ctx,
                              task_priority,
@@ -46,10 +47,10 @@ TaskHandle_t uart_task_initialize(uart_task_ctx_t* task_ctx,
                              task_buffer);
 }
 
-StreamBufferHandle_t uart_stream_buffer_initialize(StaticStreamBuffer_t* stream_buffer,
-                                                   UBaseType_t stream_buffer_trigger,
-                                                   UBaseType_t stream_buffer_storage_size,
-                                                   uint8_t* stream_buffer_storage)
+StreamBufferHandle_t uart_task_create_stream_buffer(StaticStreamBuffer_t* stream_buffer,
+                                                    UBaseType_t stream_buffer_trigger,
+                                                    UBaseType_t stream_buffer_storage_size,
+                                                    uint8_t* stream_buffer_storage)
 {
     assert(stream_buffer && stream_buffer_storage);
 
