@@ -59,3 +59,21 @@ StreamBufferHandle_t uart_task_create_stream_buffer(StaticStreamBuffer_t* stream
                                      stream_buffer_storage,
                                      stream_buffer);
 }
+
+void uart_receive_complete_callback(TaskHandle_t uart_task)
+{
+    BaseType_t task_woken = pdFALSE;
+
+    xTaskNotifyFromISR(uart_task, UART_NOTIFY_RECEIVE_COMPLETE, eSetBits, &task_woken);
+
+    portYIELD_FROM_ISR(task_woken);
+}
+
+void uart_transmit_complete_callback(TaskHandle_t uart_task)
+{
+    BaseType_t task_woken = pdFALSE;
+
+    xTaskNotifyFromISR(uart_task, UART_NOTIFY_TRANSMIT_COMPLETE, eSetBits, &task_woken);
+
+    portYIELD_FROM_ISR(task_woken);
+}

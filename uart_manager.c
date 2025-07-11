@@ -7,30 +7,22 @@
 #include <stdint.h>
 #include <string.h>
 
-static uart_err_t uart_manager_receive_stream_data(StreamBufferHandle_t stream_buffer,
-                                                   uint8_t* stream_data,
-                                                   size_t stream_data_size,
-                                                   size_t* received_size)
+static size_t uart_manager_receive_stream_data(StreamBufferHandle_t stream_buffer,
+                                               uint8_t* stream_data,
+                                               size_t stream_data_size)
 {
-    assert(stream_buffer && stream_data && received_size);
+    assert(stream_buffer && stream_data);
 
-    *received_size =
-        xStreamBufferReceive(stream_buffer, stream_data, stream_data_size, portMAX_DELAY);
-
-    return *received_size > 0U ? UART_ERR_OK : UART_ERR_RECEIVE;
+    return xStreamBufferReceive(stream_buffer, stream_data, stream_data_size, portMAX_DELAY);
 }
 
-static uart_err_t uart_manager_transmit_stream_data(StreamBufferHandle_t stream_buffer,
-                                                    uint8_t const* stream_data,
-                                                    size_t stream_data_size,
-                                                    size_t* transmitted_size)
+static size_t uart_manager_transmit_stream_data(StreamBufferHandle_t stream_buffer,
+                                                uint8_t const* stream_data,
+                                                size_t stream_data_size)
 {
-    assert(stream_buffer && stream_data && transmitted_size);
+    assert(stream_buffer && stream_data);
 
-    *transmitted_size =
-        xStreamBufferSend(stream_buffer, stream_data, stream_data_size, portMAX_DELAY);
-
-    return *transmitted_size > 0U ? UART_ERR_OK : UART_ERR_TRANSMIT;
+    return xStreamBufferSend(stream_buffer, stream_data, stream_data_size, portMAX_DELAY);
 }
 
 static uart_err_t uart_manager_receive_uart_data(UART_HandleTypeDef* uart,
@@ -73,11 +65,14 @@ static uart_err_t uart_manager_notify_receive_complete_handler(uart_manager_t* m
         return err;
     }
 
-    size_t transmitted_size;
-    return uart_manager_transmit_stream_data(manager->stream_buffer,
-                                             manager->uart_buffer,
-                                             manager->uart_buffer_size,
-                                             &transmitted_size);
+    size_t transmitted_size = uart_manager_transmit_stream_data(manager->stream_buffer,
+                                                                manager->uart_buffer,
+                                                                manager->uart_buffer_size);
+    if (transmitted_size == 0U) {
+        return UART_ERR_FAIL;
+    }
+
+    return err;
 }
 
 static uart_err_t uart_manager_notify_transmit_complete_handler(uart_manager_t* manager)
@@ -86,13 +81,11 @@ static uart_err_t uart_manager_notify_transmit_complete_handler(uart_manager_t* 
 
     memset(manager->uart_buffer, 0, sizeof(manager->uart_buffer));
 
-    size_t received_size;
-    uart_err_t err = uart_manager_receive_stream_data(manager->stream_buffer,
-                                                      manager->uart_buffer,
-                                                      manager->uart_buffer_size,
-                                                      &received_size);
-    if (err != UART_ERR_OK) {
-        return err;
+    size_t received_size = uart_manager_receive_stream_data(manager->stream_buffer,
+                                                            manager->uart_buffer,
+                                                            manager->uart_buffer_size);
+    if (received_size == 0U) {
+        return UART_ERR_FAIL;
     }
 
     return uart_manager_transmit_uart_data(manager->uart, manager->uart_buffer, received_size);
@@ -102,9 +95,15 @@ static uart_err_t uart_manager_notify_handler(uart_manager_t* manager, uart_noti
 {
     assert(manager);
 
+    uart_err_t err = UART_ERR_OK;
+
     if (notify & UART_NOTIFY_TRANSMIT_COMPLETE) {
-        return uart_manager_notify_transmit_complete_handler(manager);
-    } else if (notify & UART_NOTIFY_RECEIVE_COMPLETE) {
+        err = uart_manager_notify_transmit_complete_handler(manager);
+        if (err != UART_ERR_OK) {
+            return err;
+        }
+    }
+    if (notify & UART_NOTIFY_RECEIVE_COMPLETE) {
         return uart_manager_notify_receive_complete_handler(manager);
     }
 
@@ -130,6 +129,11 @@ uart_err_t uart_manager_initialize(uart_manager_t* manager,
                                    size_t uart_buffer_size,
                                    uart_action_t action)
 {
+    manager->stream_buffer = stream_buffer;
+    manager->uart = uart;
+    manager->uart_buffer = uart_buffer;
+    manager->uart_buffer_size = uart_buffer_size;
+
     switch (action) {
         case UART_ACTION_RECEIVE:
             return uart_manager_notify_receive_complete_handler(manager);

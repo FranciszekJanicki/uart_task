@@ -22,10 +22,12 @@ TaskHandle_t uart_task_create_task(uart_task_ctx_t* task_ctx,
                                    UBaseType_t task_priority,
                                    StackType_t* task_stack,
                                    UBaseType_t task_stack_size);
-
 StreamBufferHandle_t uart_task_create_stream_buffer(StaticStreamBuffer_t* stream_buffer,
                                                     UBaseType_t stream_buffer_trigger,
                                                     UBaseType_t stream_buffer_storage_size,
                                                     uint8_t* stream_buffer_storage);
+
+void uart_receive_complete_callback(TaskHandle_t uart_task);
+void uart_transmit_complete_callback(TaskHandle_t uart_task);
 
 #endif // UART_TASK_UART_TASK_H
