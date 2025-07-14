@@ -4,16 +4,13 @@
 #include "stream_buffer.h"
 #include "task.h"
 #include "uart_manager.h"
-#include "usart.h"
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
 
-static void uart_task_func(void* task_param)
+static void uart_task_func(void* ctx)
 {
-    assert(task_param != NULL);
-
-    uart_task_ctx_t* task_ctx = (uart_task_ctx_t*)task_param;
+    uart_task_ctx_t* task_ctx = (uart_task_ctx_t*)ctx;
 
     uart_manager_t manager;
     uart_manager_initialize(&manager,
