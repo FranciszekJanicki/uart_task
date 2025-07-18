@@ -27,7 +27,7 @@ StreamBufferHandle_t uart_task_create_stream_buffer(StaticStreamBuffer_t* stream
                                                     UBaseType_t stream_buffer_storage_size,
                                                     uint8_t* stream_buffer_storage);
 
-void uart_receive_complete_callback(TaskHandle_t uart_task);
-void uart_transmit_complete_callback(TaskHandle_t uart_task);
+void uart_task_receive_complete_callback(TaskHandle_t uart_task);
+void uart_task_transmit_complete_callback(TaskHandle_t uart_task);
 
 #endif // UART_TASK_UART_TASK_H
